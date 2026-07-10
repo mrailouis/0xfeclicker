@@ -8,11 +8,11 @@
 		"mrai/louis"
 	],
 	"contact": {
-		"homepage": "https://louisbeer.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://louisbeer.net",
+		"sources": "https://github.com/mrailouis/0xfeclicker"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/0xfeclicker/icon.png",
+	"icon": "assets/0xfeclicker/mainico.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
