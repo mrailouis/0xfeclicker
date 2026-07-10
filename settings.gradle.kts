@@ -14,4 +14,4 @@ pluginManagement {
 }
 
 // Should match your modid
-rootProject.name = "0xfeclicker"
+rootProject.name = "xfeclicker"

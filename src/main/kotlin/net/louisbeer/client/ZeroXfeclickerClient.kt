@@ -8,20 +8,23 @@ import net.louisbeer.ZeroXfeclicker
 import net.louisbeer.client.command.ModCommands
 import net.louisbeer.client.gui.ClickGuiScreen
 import net.louisbeer.client.module.ModuleManager
+import net.louisbeer.client.render.ModPipelines
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.Minecraft
 import org.lwjgl.glfw.GLFW
 
 object ZeroXfeclickerClient : ClientModInitializer {
-	private val CATEGORY = KeyMapping.Category.register(ZeroXfeclicker.id("0xfe"))
+	private val CATEGORY = KeyMapping.Category.register(ZeroXfeclicker.id("oxfe"))
 
 	lateinit var openGuiKey: KeyMapping
 		private set
 
 	override fun onInitializeClient() {
+		ModPipelines.bootstrap()
+
 		openGuiKey = KeyBindingHelper.registerKeyBinding(
 			KeyMapping(
-				"key.0xfeclicker.open_gui",
+				"key.xfeclicker.open_gui",
 				InputConstants.Type.KEYSYM,
 				GLFW.GLFW_KEY_RIGHT_SHIFT,
 				CATEGORY,

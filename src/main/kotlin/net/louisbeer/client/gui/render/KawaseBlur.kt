@@ -1,65 +1,89 @@
 package net.louisbeer.client.gui.render
 
+import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.pipeline.RenderTarget
 import com.mojang.blaze3d.pipeline.TextureTarget
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.textures.FilterMode
+import net.louisbeer.client.render.ModPipelines
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.render.TextureSetup
-import net.minecraft.client.renderer.RenderPipelines
-import net.minecraft.util.ARGB
+import org.joml.Matrix3x2f
+import org.slf4j.LoggerFactory
 import java.util.OptionalInt
 
 /**
- * Dual Kawase-style blur: one 2x downsample pass, then one 2x upsample pass.
+ * Dual Kawase blur (1× downsample + 1× upsample) drawn through a rounded-rect SDF panel shader.
  */
 object KawaseBlur {
+	private val LOGGER = LoggerFactory.getLogger("xfeclicker/kawase")
+
 	private var downTarget: TextureTarget? = null
 	private var upTarget: TextureTarget? = null
 	private var lastWidth = -1
 	private var lastHeight = -1
+	private var ready = false
 
 	fun prepare() {
-		val main = Minecraft.getInstance().mainRenderTarget
-		val width = main.width
-		val height = main.height
-		if (width <= 0 || height <= 0) {
-			return
+		ready = false
+		try {
+			val main = Minecraft.getInstance().mainRenderTarget
+			val width = main.width
+			val height = main.height
+			if (width <= 0 || height <= 0) {
+				return
+			}
+
+			ensureTargets(width, height)
+
+			val down = downTarget ?: return
+			val up = upTarget ?: return
+			val mainColor = main.colorTexture ?: return
+			val upColor = up.colorTexture ?: return
+
+			RenderSystem.getDevice()
+				.createCommandEncoder()
+				.copyTextureToTexture(mainColor, upColor, 0, 0, 0, 0, 0, width, height)
+
+			// 2x down, then 2x up
+			runKawasePass(up, down, ModPipelines.KAWASE_DOWN)
+			runKawasePass(down, up, ModPipelines.KAWASE_UP)
+			ready = true
+		} catch (t: Throwable) {
+			LOGGER.warn("Kawase blur prepare failed", t)
+			ready = false
 		}
-
-		ensureTargets(width, height)
-
-		val down = downTarget ?: return
-		val up = upTarget ?: return
-		val encoder = RenderSystem.getDevice().createCommandEncoder()
-
-		val mainColor = main.colorTexture ?: return
-		val upColor = up.colorTexture ?: return
-		encoder.copyTextureToTexture(mainColor, upColor, 0, 0, 0, 0, 0, width, height)
-
-		blitLinear(up, down)
-		blitLinear(down, up)
 	}
 
-	fun drawRoundedPanel(graphics: GuiGraphics, x: Int, y: Int, width: Int, height: Int, radius: Int, tint: Int) {
-		val up = upTarget ?: return
-		val view = up.colorTextureView ?: return
-		val sampler = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR)
-		val setup = TextureSetup.singleTexture(view, sampler)
-		val guiWidth = graphics.guiWidth()
-		val guiHeight = graphics.guiHeight()
+	fun drawRoundedPanel(graphics: GuiGraphics, x: Int, y: Int, width: Int, height: Int, tint: Int) {
+		if (ready) {
+			val view = upTarget?.colorTextureView
+			if (view != null) {
+				val sampler = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR)
+				val setup = TextureSetup.singleTexture(view, sampler)
+				graphics.guiRenderState.submitGuiElement(
+					RoundedBlurRenderState(
+						setup,
+						Matrix3x2f(graphics.pose()),
+						x,
+						y,
+						x + width,
+						y + height,
+						tint,
+						graphics.scissorStack.peek(),
+					),
+				)
+				return
+			}
+		}
 
-		// Full-screen textured draw + scissor keeps framebuffer UVs 1:1 with the game view.
-		graphics.enableScissor(x, y, x + width, y + height)
-		graphics.fill(RenderPipelines.GUI_TEXTURED, setup, 0, 0, guiWidth, guiHeight)
-		graphics.disableScissor()
-
-		fillRounded(graphics, x, y, width, height, radius, tint)
-		drawRoundedOutline(graphics, x, y, width, height, radius, ARGB.color(80, 255, 255, 255))
+		// Fallback if blur targets are unavailable.
+		graphics.fill(x, y, x + width, y + height, tint)
 	}
 
 	fun fillRounded(graphics: GuiGraphics, x: Int, y: Int, width: Int, height: Int, radius: Int, color: Int) {
+		// Lightweight CPU rounded rect for small module chrome (not the main blur panel).
 		val r = radius.coerceIn(0, minOf(width, height) / 2)
 		if (r <= 0) {
 			graphics.fill(x, y, x + width, y + height, color)
@@ -74,14 +98,6 @@ object KawaseBlur {
 		fillCorner(graphics, x + width - r - 1, y + r, r, color, 1)
 		fillCorner(graphics, x + r, y + height - r - 1, r, color, 2)
 		fillCorner(graphics, x + width - r - 1, y + height - r - 1, r, color, 3)
-	}
-
-	private fun drawRoundedOutline(graphics: GuiGraphics, x: Int, y: Int, width: Int, height: Int, radius: Int, color: Int) {
-		val r = radius.coerceIn(0, minOf(width, height) / 2)
-		graphics.fill(x + r, y, x + width - r, y + 1, color)
-		graphics.fill(x + r, y + height - 1, x + width - r, y + height, color)
-		graphics.fill(x, y + r, x + 1, y + height - r, color)
-		graphics.fill(x + width - 1, y + r, x + width, y + height - r, color)
 	}
 
 	private fun fillCorner(graphics: GuiGraphics, cx: Int, cy: Int, radius: Int, color: Int, corner: Int) {
@@ -103,16 +119,16 @@ object KawaseBlur {
 		}
 	}
 
-	private fun blitLinear(from: RenderTarget, to: RenderTarget) {
+	private fun runKawasePass(from: RenderTarget, to: RenderTarget, pipeline: RenderPipeline) {
 		val fromView = from.colorTextureView ?: return
 		val toView = to.colorTextureView ?: return
 		val sampler = RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR)
 
 		RenderSystem.getDevice()
 			.createCommandEncoder()
-			.createRenderPass({ "0xfe kawase blit" }, toView, OptionalInt.empty())
+			.createRenderPass({ "xfe kawase" }, toView, OptionalInt.empty())
 			.use { renderPass ->
-				renderPass.setPipeline(RenderPipelines.ENTITY_OUTLINE_BLIT)
+				renderPass.setPipeline(pipeline)
 				RenderSystem.bindDefaultUniforms(renderPass)
 				renderPass.bindTexture("InSampler", fromView, sampler)
 				renderPass.draw(0, 3)
@@ -128,8 +144,8 @@ object KawaseBlur {
 
 		downTarget?.destroyBuffers()
 		upTarget?.destroyBuffers()
-		downTarget = TextureTarget("0xfe-kawase-down", halfW, halfH, true)
-		upTarget = TextureTarget("0xfe-kawase-up", width, height, true)
+		downTarget = TextureTarget("xfe-kawase-down", halfW, halfH, false)
+		upTarget = TextureTarget("xfe-kawase-up", width, height, false)
 		lastWidth = width
 		lastHeight = height
 	}

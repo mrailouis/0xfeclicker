@@ -1,10 +1,10 @@
 package net.louisbeer.client.gui.component
 
-import net.louisbeer.client.gui.render.KawaseBlur
 import net.louisbeer.client.module.Module
 import net.louisbeer.client.module.Setting
+import net.louisbeer.client.render.ModFonts
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.util.ARGB
 import net.minecraft.util.Mth
@@ -18,8 +18,8 @@ class ModulePanel(
 	private var expanded = true
 	private var draggingSlider: Setting.Slider? = null
 
-	val headerHeight = 18
-	val rowHeight = 16
+	val headerHeight = 22
+	val rowHeight = 18
 
 	fun contentHeight(): Int {
 		if (!expanded) {
@@ -29,27 +29,17 @@ class ModulePanel(
 	}
 
 	fun render(graphics: GuiGraphics, mouseX: Int, mouseY: Int) {
-		val enabledColor = if (module.enabled) {
-			ARGB.color(220, 90, 200, 140)
-		} else {
-			ARGB.color(160, 40, 40, 45)
-		}
-		KawaseBlur.fillRounded(graphics, x, y, width, headerHeight, 4, enabledColor)
-		graphics.drawString(
-			net.minecraft.client.Minecraft.getInstance().font,
-			module.name,
-			x + 6,
-			y + 5,
-			ARGB.color(255, 240, 240, 240),
-			false,
-		)
+		val font = Minecraft.getInstance().font
 
-		val status = if (module.enabled) "ON" else "OFF"
+		val name = ModFonts.text(module.name)
+		graphics.drawString(font, name, x + 6, y + 5, ARGB.color(255, 240, 240, 240), false)
+
+		val status = ModFonts.text(if (module.enabled) "ON" else "OFF")
 		val statusColor = if (module.enabled) ARGB.color(255, 120, 220, 160) else ARGB.color(200, 180, 180, 180)
 		graphics.drawString(
-			net.minecraft.client.Minecraft.getInstance().font,
+			font,
 			status,
-			x + width - 6 - net.minecraft.client.Minecraft.getInstance().font.width(status),
+			x + width - 6 - font.width(status),
 			y + 5,
 			statusColor,
 			false,
@@ -70,8 +60,8 @@ class ModulePanel(
 	}
 
 	private fun renderSlider(graphics: GuiGraphics, setting: Setting.Slider, rowY: Int, mouseX: Int, mouseY: Int) {
-		val font = net.minecraft.client.Minecraft.getInstance().font
-		val label = "${setting.name}: ${setting.value.toInt()}"
+		val font = Minecraft.getInstance().font
+		val label = ModFonts.text("${setting.name}: ${setting.value.toInt()}")
 		graphics.drawString(font, label, x + 8, rowY, ARGB.color(230, 220, 220, 220), false)
 
 		val barX = x + 8
@@ -93,8 +83,8 @@ class ModulePanel(
 	}
 
 	private fun renderKeybind(graphics: GuiGraphics, setting: Setting.Keybind, rowY: Int) {
-		val font = net.minecraft.client.Minecraft.getInstance().font
-		val text = "${setting.name}: ${setting.displayName()}"
+		val font = Minecraft.getInstance().font
+		val text = ModFonts.text("${setting.name}: ${setting.displayName()}")
 		val color = if (setting.listening) {
 			ARGB.color(255, 255, 210, 120)
 		} else {
@@ -157,15 +147,6 @@ class ModulePanel(
 		val slider = draggingSlider ?: return false
 		updateSlider(slider, event.x().toInt())
 		return true
-	}
-
-	fun keyPressed(event: KeyEvent): Boolean {
-		for (setting in module.settings) {
-			if (setting is Setting.Keybind && setting.listening) {
-				return false
-			}
-		}
-		return false
 	}
 
 	private fun updateSlider(setting: Setting.Slider, mouseX: Int) {

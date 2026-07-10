@@ -5,7 +5,8 @@ import net.minecraft.resources.Identifier
 import org.slf4j.LoggerFactory
 
 object ZeroXfeclicker : ModInitializer {
-	const val MOD_ID: String = "0xfeclicker"
+	/** Fabric mod IDs cannot start with a digit, so we use xfeclicker. */
+	const val MOD_ID: String = "xfeclicker"
 
 	val LOGGER = LoggerFactory.getLogger(MOD_ID)
 

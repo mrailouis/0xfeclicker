@@ -1,34 +1,31 @@
 package net.louisbeer.client.gui
 
-import net.louisbeer.ZeroXfeclicker
 import net.louisbeer.client.gui.component.ModulePanel
 import net.louisbeer.client.gui.render.KawaseBlur
 import net.louisbeer.client.module.ModuleManager
+import net.louisbeer.client.render.ModFonts
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
-import net.minecraft.network.chat.FontDescription
-import net.minecraft.network.chat.Style
 import net.minecraft.util.ARGB
 
-class ClickGuiScreen : Screen(Component.literal("0xfe")) {
-	private val panelWidth = 220
-	private val panelPadding = 14
-	private val cornerRadius = 12
+class ClickGuiScreen : Screen(ModFonts.text("0xfe")) {
+	private val panelWidth = 300
+	private val panelPadding = 18
+	private val titleAreaHeight = 48
 	private lateinit var modulePanels: List<ModulePanel>
 
-	private val titleText: Component = Component.literal("0xFE x Larp")
-		.withStyle(Style.EMPTY.withFont(FontDescription.Resource(ZeroXfeclicker.id("rubik"))))
+	private val titleText: Component = ModFonts.title("0xFE x Larp")
 
 	override fun init() {
 		val panelX = (width - panelWidth) / 2
-		val startY = height / 2 - 70
-		var y = startY + 36
+		val startY = height / 2 - 90
+		var y = startY + titleAreaHeight
 		modulePanels = ModuleManager.modules.map { module ->
 			val panel = ModulePanel(module, panelX + panelPadding, y, panelWidth - panelPadding * 2)
-			y += panel.contentHeight() + 8
+			y += panel.contentHeight() + 10
 			panel
 		}
 	}
@@ -50,8 +47,7 @@ class ClickGuiScreen : Screen(Component.literal("0xfe")) {
 			panelY,
 			panelWidth,
 			panelHeight,
-			cornerRadius,
-			ARGB.color(120, 12, 14, 18),
+			ARGB.color(140, 18, 20, 26),
 		)
 
 		val titleWidth = font.width(titleText)
@@ -59,17 +55,17 @@ class ClickGuiScreen : Screen(Component.literal("0xfe")) {
 			font,
 			titleText,
 			panelX + (panelWidth - titleWidth) / 2,
-			panelY + 12,
+			panelY + 16,
 			ARGB.color(255, 245, 245, 245),
 			false,
 		)
 
-		var y = panelY + 36
+		var y = panelY + titleAreaHeight
 		for (panel in modulePanels) {
 			panel.x = panelX + panelPadding
 			panel.y = y
 			panel.render(guiGraphics, mouseX, mouseY)
-			y += panel.contentHeight() + 8
+			y += panel.contentHeight() + 10
 		}
 
 		super.render(guiGraphics, mouseX, mouseY, partialTick)
@@ -111,11 +107,11 @@ class ClickGuiScreen : Screen(Component.literal("0xfe")) {
 	override fun isPauseScreen(): Boolean = false
 
 	private fun estimatePanelHeight(): Int {
-		var height = 36 + panelPadding
+		var height = titleAreaHeight + panelPadding
 		for (panel in modulePanels) {
-			height += panel.contentHeight() + 8
+			height += panel.contentHeight() + 10
 		}
-		return height + 4
+		return height + 6
 	}
 
 	companion object {
