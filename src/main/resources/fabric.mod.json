@@ -20,6 +20,12 @@
 				"value": "net.louisbeer.ZeroXfeclicker",
 				"adapter": "kotlin"
 			}
+		],
+		"client": [
+			{
+				"value": "net.louisbeer.client.ZeroXfeclickerClient",
+				"adapter": "kotlin"
+			}
 		]
 	},
 	"mixins": [

@@ -2,8 +2,12 @@
 	"required": true,
 	"package": "net.louisbeer.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin"
+	"mixins": [],
+	"client": [
+		"MinecraftAccessor",
+		"ChatScreenMixin",
+		"CommandSuggestionsMixin",
+		"KeyboardHandlerMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

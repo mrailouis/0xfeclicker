@@ -1,0 +1,11 @@
+{
+	"providers": [
+		{
+			"type": "ttf",
+			"file": "0xfeclicker:rubik",
+			"size": 11.0,
+			"oversample": 4.0,
+			"skip": ""
+		}
+	]
+}
