@@ -1,5 +1,7 @@
 package net.louisbeer.client.module
 
+import net.louisbeer.client.config.ModConfig
+import net.louisbeer.client.gui.toast.ModuleToasts
 import net.minecraft.client.Minecraft
 
 abstract class Module(
@@ -20,7 +22,7 @@ abstract class Module(
 		setEnabled(!enabled)
 	}
 
-	fun setEnabled(value: Boolean) {
+	fun setEnabled(value: Boolean, notify: Boolean = true, save: Boolean = true) {
 		if (enabled == value) {
 			return
 		}
@@ -29,6 +31,12 @@ abstract class Module(
 			onEnable()
 		} else {
 			onDisable()
+		}
+		if (notify) {
+			ModuleToasts.show(this)
+		}
+		if (save) {
+			ModConfig.save()
 		}
 	}
 

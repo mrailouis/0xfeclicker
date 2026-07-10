@@ -16,6 +16,8 @@ object ModPipelines {
 		private set
 	lateinit var ROUNDED_BLUR: RenderPipeline
 		private set
+	lateinit var ROUNDED_RECT: RenderPipeline
+		private set
 
 	fun bootstrap() {
 		KAWASE_DOWN = RenderPipelines.register(
@@ -46,16 +48,27 @@ object ModPipelines {
 				.build(),
 		)
 
-		val roundedBuilder = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
+		val roundedBlurBuilder = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET)
 			.withLocation(ZeroXfeclicker.id("pipeline/rounded_blur"))
 			.withVertexShader(ZeroXfeclicker.id("core/rounded_blur"))
 			.withFragmentShader(ZeroXfeclicker.id("core/rounded_blur"))
+			.withSampler("Sampler1")
 			.withBlend(BlendFunction.TRANSLUCENT)
 			.withDepthWrite(false)
 			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
 			.withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+		(roundedBlurBuilder as FabricRenderPipeline.Builder).withUsePipelineDrawModeForGui(true)
+		ROUNDED_BLUR = RenderPipelines.register(roundedBlurBuilder.build())
 
-		(roundedBuilder as FabricRenderPipeline.Builder).withUsePipelineDrawModeForGui(true)
-		ROUNDED_BLUR = RenderPipelines.register(roundedBuilder.build())
+		val roundedRectBuilder = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+			.withLocation(ZeroXfeclicker.id("pipeline/rounded_rect"))
+			.withVertexShader(ZeroXfeclicker.id("core/rounded_rect"))
+			.withFragmentShader(ZeroXfeclicker.id("core/rounded_rect"))
+			.withBlend(BlendFunction.TRANSLUCENT)
+			.withDepthWrite(false)
+			.withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+			.withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+		(roundedRectBuilder as FabricRenderPipeline.Builder).withUsePipelineDrawModeForGui(true)
+		ROUNDED_RECT = RenderPipelines.register(roundedRectBuilder.build())
 	}
 }

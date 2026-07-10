@@ -7,8 +7,8 @@ import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.chat.Style
 
 object ModFonts {
-	val ID = ZeroXfeclicker.id("rubik")
-	val TITLE_ID = ZeroXfeclicker.id("rubik_title")
+	val ID = ZeroXfeclicker.id("golos")
+	val TITLE_ID = ZeroXfeclicker.id("golos_title")
 
 	val STYLE: Style = Style.EMPTY.withFont(FontDescription.Resource(ID))
 	val TITLE_STYLE: Style = Style.EMPTY.withFont(FontDescription.Resource(TITLE_ID))

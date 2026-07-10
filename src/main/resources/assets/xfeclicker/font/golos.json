@@ -1,0 +1,11 @@
+{
+	"providers": [
+		{
+			"type": "ttf",
+			"file": "xfeclicker:golos.ttf",
+			"shift": [0, 0],
+			"size": 8,
+			"oversample": 4
+		}
+	]
+}

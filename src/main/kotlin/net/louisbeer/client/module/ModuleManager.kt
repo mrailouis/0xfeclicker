@@ -1,6 +1,7 @@
 package net.louisbeer.client.module
 
 import com.mojang.blaze3d.platform.InputConstants
+import net.louisbeer.client.config.ModConfig
 import net.louisbeer.client.module.modules.AutoClicker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.input.KeyEvent
@@ -30,6 +31,7 @@ object ModuleManager {
 							setting.key = key
 						}
 						setting.listening = false
+						ModConfig.save()
 						return true
 					}
 
