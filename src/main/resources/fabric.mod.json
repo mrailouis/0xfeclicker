@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "0xfeclicker",
+	"version": "${version}",
+	"name": "0xfeclicker",
+	"description": "larping 20cps in the big '26!",
+	"authors": [
+		"mrai/louis"
+	],
+	"contact": {
+		"homepage": "https://louisbeer.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/0xfeclicker/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			{
+				"value": "net.louisbeer.ZeroXfeclicker",
+				"adapter": "kotlin"
+			}
+		]
+	},
+	"mixins": [
+		"0xfeclicker.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*",
+		"fabric-language-kotlin": "*"
+	}
+}
